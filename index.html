@@ -20,54 +20,77 @@
             overflow: hidden;
         }
 
-        /* === NUEVA PANTALLA DE CARGA === */
-        #loading-screen {
-            text-align: center;
+        /* === MENÚ PRINCIPAL === */
+        #start-screen { 
+            text-align: center; 
+            animation: fadeIn 0.5s;
             width: 100%;
             max-width: 600px;
             padding: 20px;
             box-sizing: border-box;
         }
-        
-        #loading-screen img {
-            width: 100%;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-        }
-        
-        #loading-text {
-            margin-top: 30px;
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #ffd700;
-            animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        /* === MENÚ ORIGINAL - SIN CAMBIOS === */
-        #start-screen { 
-            text-align: center; 
-            animation: fadeIn 0.5s;
-            display: none; /* Oculto al inicio */
-        }
         #start-screen h1 { font-size: 3em; margin-bottom: 10px; color: #ffd700; text-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
-        #start-screen p { color: #aaa; margin-bottom: 40px; font-size: 1.2em; }
+        #start-screen p { color: #aaa; margin-bottom: 30px; font-size: 1.2em; }
         
         .menu-btn {
-            display: block; width: 280px; margin: 15px auto; padding: 18px;
+            display: block; width: 280px; margin: 10px auto; padding: 18px;
             font-size: 1.2em; font-weight: bold; border: none; border-radius: 10px;
-            cursor: pointer; color: white; transition: transform 0.2s;
+            cursor: pointer; color: white; transition: transform 0.2s, filter 0.2s;
         }
         .menu-btn:active { transform: scale(0.95); }
         .btn-pvp { background: linear-gradient(135deg, #2196F3, #1976D2); }
         .btn-ai { background: linear-gradient(135deg, #FF9800, #F57C00); }
+        /* BOTÓN NUEVO DE INSTRUCCIONES (VERDE OSCURO) */
+        .btn-instructions { background: linear-gradient(135deg, #388E3C, #1B5E20); }
 
-        /* === RESTO DEL JUEGO - SIN CAMBIOS === */
+        /* === MODAL DE INSTRUCCIONES === */
+        #modal-overlay {
+            display: none; /* Oculto por defecto */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center; align-items: center;
+        }
+        #modal-content {
+            background: #222;
+            color: #eee;
+            padding: 25px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh; /* Scroll si es muy alto */
+            overflow-y: auto;
+            text-align: left;
+            position: relative;
+            border: 1px solid #444;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        #modal-content h2 { color: #ffd700; margin-top: 0; text-align: center; }
+        #modal-content h3 { color: #4CAF50; margin-bottom: 5px; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        #modal-content p, #modal-content li { font-size: 0.95em; line-height: 1.5; color: #ccc; }
+        #modal-content ul { padding-left: 20px; }
+        
+        .close-btn {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
+        .close-btn:hover { background: #666; }
+        .x-close {
+            position: absolute; top: 10px; right: 15px;
+            font-size: 1.5em; cursor: pointer; color: #aaa;
+            background: none; border: none;
+        }
+        .x-close:hover { color: white; }
+
+        /* === PANTALLA DE JUEGO (INTACTA) === */
         #game-screen { display: none; width: 100%; max-width: 620px; text-align: center; }
         
         #game-wrapper {
@@ -145,21 +168,51 @@
 </head>
 <body>
 
-    <!-- === NUEVA PANTALLA DE CARGA === -->
-    <div id="loading-screen">
-        <img src="portada.png" alt="El Molino - Portada">
-        <div id="loading-text">Cargando...</div>
-    </div>
-
-    <!-- === MENÚ ORIGINAL === -->
+    <!-- MENÚ PRINCIPAL -->
     <div id="start-screen">
         <h1>El Molino</h1>
         <p>Selecciona modo de juego</p>
+        
+        <!-- Botones de Juego -->
         <button class="menu-btn btn-pvp" onclick="startGame('pvp')">👥 Jugar con Amigo</button>
         <button class="menu-btn btn-ai" onclick="startGame('pvc')">🤖 Jugar contra IA</button>
+        
+        <!-- NUEVO BOTÓN DE INSTRUCCIONES -->
+        <button class="menu-btn btn-instructions" onclick="openModal()">📜 Cómo se juega</button>
     </div>
 
-    <!-- === JUEGO ORIGINAL - SIN CAMBIOS === -->
+    <!-- VENTANA MODAL DE INSTRUCCIONES -->
+    <div id="modal-overlay">
+        <div id="modal-content">
+            <button class="x-close" onclick="closeModal()">✕</button>
+            <h2>Cómo Jugar</h2>
+            
+            <h3>🎯 Objetivo</h3>
+            <p>Elimina las fichas de tu rival o bloquéalo para que no pueda moverse.</p>
+
+            <h3>1. Colocación</h3>
+            <p>Cada jugador tiene <strong>9 fichas</strong>. Por turnos, coloca una ficha en cualquier intersección vacía.</p>
+
+            <h3>2. Movimiento</h3>
+            <p>Una vez colocadas las 9 fichas, mueve tus piezas a un punto vacío <strong>adyacente</strong> (conectado por línea).</p>
+
+            <h3>3. Molinos (3 en raya)</h3>
+            <p>Si alineas 3 fichas, formas un "molino" y puedes <strong>eliminar una ficha rival</strong>.</p>
+
+            <h3>4. Regla de Captura</h3>
+            <p>No puedes capturar una ficha que forme parte de un molino rival, a menos que <strong>todas</strong> sus fichas estén en molinos.</p>
+
+            <h3>5. Victoria</h3>
+            <ul>
+                <li>El rival tiene menos de 3 fichas.</li>
+                <li>El rival no tiene movimientos posibles.</li>
+            </ul>
+
+            <button class="close-btn" onclick="closeModal()">Entendido</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE JUEGO -->
     <div id="game-screen">
         <div id="game-wrapper">
             <canvas id="gameCanvas" width="600" height="600"></canvas>
@@ -193,15 +246,15 @@
     </div>
 
 <script>
-    // === NUEVO: Transición de carga ===
-    window.addEventListener('load', function() {
-        setTimeout(function() {
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('start-screen').style.display = 'block';
-        }, 5000); // 5 segundos de carga
-    });
+    // --- LÓGICA DE LA MODAL ---
+    function openModal() {
+        document.getElementById('modal-overlay').style.display = 'flex';
+    }
+    function closeModal() {
+        document.getElementById('modal-overlay').style.display = 'none';
+    }
 
-    // === RESTO DEL CÓDIGO ORIGINAL - SIN CAMBIOS ===
+    // --- RESTO DEL CÓDIGO DEL JUEGO (INTACTO) ---
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const overlay = document.getElementById('message-overlay');
